@@ -33,6 +33,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Deployment.Compression, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce35f76fcda82bad, processorArchitecture=MSIL">
+      <HintPath>..\packages\MSFTCompressionCab.1.0.0\lib\Microsoft.Deployment.Compression.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Deployment.Compression.Cab, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce35f76fcda82bad, processorArchitecture=MSIL">
+      <HintPath>..\packages\MSFTCompressionCab.1.0.0\lib\Microsoft.Deployment.Compression.Cab.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -48,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
