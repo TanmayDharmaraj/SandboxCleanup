@@ -33,21 +33,55 @@ namespace SandboxCleanup
             doc.Load(manifest_path);
 
             XmlNode solution_node = doc.SelectSingleNode("/a:Solution", nsmgr);
+
+            //Remove Assembly References
             XmlNode nodes = doc.SelectSingleNode("/a:Solution/a:Assemblies", nsmgr);
-
-            foreach (XmlNode node in nodes)
+            if (nodes != null)
             {
-                if (node.Attributes["Location"] == null) continue;
-                string dll = node.Attributes["Location"].Value;
-
-                if (delete_dll)
+                foreach (XmlNode node in nodes)
                 {
-                    File.Delete(Path.Combine(sandbox_folder_path, dll));
-                }
+                    if (node.Attributes["Location"] == null) continue;
+                    string dll = node.Attributes["Location"].Value;
 
+                    if (delete_dll)
+                    {
+                        //TODO: this code will throw an exception if the dll is set to read-only.
+                        File.Delete(Path.Combine(sandbox_folder_path, dll));
+                    }
+
+                }
+                solution_node.RemoveChild(nodes);
             }
 
-            solution_node.RemoveChild(nodes);
+            //Remove Feature ReceiverClass and ReceiverAssembly attributes
+            XmlNodeList feature_nodes = doc.SelectNodes("/a:Solution/a:FeatureManifests/a:FeatureManifest", nsmgr);
+            if (feature_nodes != null)
+            {
+                foreach (XmlNode node in feature_nodes)
+                {
+                    if (node.Attributes["Location"] == null) continue;
+                    string feature_location = node.Attributes["Location"].Value;
+
+                    //Get the feature.xml file
+                    string feature_path = Path.Combine(sandbox_folder_path, feature_location);
+                    XmlDocument feature_xml = new XmlDocument();
+                    feature_xml.Load(feature_path);
+                    //Load the xml document for feature.xml
+                    XmlNodeList f_nodelist = feature_xml.SelectNodes("/a:Feature", nsmgr);
+                    foreach (XmlNode f_node in f_nodelist)
+                    {
+                        XmlAttribute recevierClass_attrib = f_node.Attributes["ReceiverClass"];
+                        if (recevierClass_attrib != null)
+                            f_node.Attributes.Remove(recevierClass_attrib);
+
+                        XmlAttribute recevierAssembly_attrib = f_node.Attributes["ReceiverAssembly"];
+                        if (recevierAssembly_attrib != null)
+                            f_node.Attributes.Remove(recevierAssembly_attrib);
+                    }
+                    //Save feature.xml back to disk
+                    feature_xml.Save(feature_path);
+                }
+            }
             doc.Save(manifest_path);
         }
 
@@ -58,11 +92,11 @@ namespace SandboxCleanup
 
         static void Main(string[] args)
         {
-            
-            string root_destination_folder = @"C:\Extracted";
-            string cab_destination_folder = @"C:\Extracted\CabFiles";
+
+            string root_destination_folder = @"C:\Users\TanmayD\Downloads\Sandbox\Abellio\Extracted";
+            string cab_destination_folder = @"C:\Users\TanmayD\Downloads\Sandbox\Abellio\Converted";
             string[] sandbox_solution_paths = new string[] {
-                @"C:\Users\TanmayD\Documents\test\SharePointProject2.wsp"
+                @"C:\Users\TanmayD\Downloads\Sandbox\Abellio\WSP\IAB.Navigation.wsp"
             };
             Directory.CreateDirectory(cab_destination_folder);
             foreach (string sandbox_path in sandbox_solution_paths)
@@ -72,8 +106,8 @@ namespace SandboxCleanup
 
                 extract(sandbox_path, extracted_folder);
                 CleanManifest(Path.Combine(extracted_folder, "manifest.xml"), delete_dll: true);
-                
-                makecab(Path.Combine(cab_destination_folder,Path.GetFileName(sandbox_path)), extracted_folder);
+
+                makecab(Path.Combine(cab_destination_folder, Path.GetFileName(sandbox_path)), extracted_folder);
             }
         }
     }
